@@ -1,0 +1,156 @@
+#include <ncurses.h>
+#include <chrono>
+#include <unistd.h>
+#include <algorithm>
+#include <cmath>
+#include "game.h"
+
+static Game* s_Game = nullptr;
+
+Game::Game() :
+    m_Ball(),
+    m_LeftPaddle(WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2),
+    m_RightPaddle(WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2),
+    m_LeftScore(0),
+    m_RightScore(0),
+    m_Running(false)
+{
+    s_Game = this;
+    m_Ball.reset();
+}
+
+Game::~Game() {
+    s_Game = nullptr;
+}
+
+void Game::processInput(char c) {
+    switch (c) {
+
+    case '`':
+        m_Running = false; break;
+    
+    case 'q':
+        m_LeftPaddle.moveUp(); break;
+    
+    case 'a':
+        m_LeftPaddle.moveDown(); break;
+    
+    case 'p':
+        m_RightPaddle.moveUp(); break;
+    
+    case 'l':
+        m_RightPaddle.moveDown(); break;
+
+    default:
+        break;
+    }
+}
+
+// -1 if Left, 0 if None, 1 if Right
+int Game::checkCollision() {
+    double xn = (m_Ball.point + m_Ball.direction).x;
+    // printf("NEW X: %f\n", xn);
+    if (xn <= 0 && checkCollision(m_LeftPaddle, m_Ball.point.x)) return -1;
+    if (xn >= WindowSpecification::WIDTH && checkCollision(m_RightPaddle, WindowSpecification::WIDTH - m_Ball.point.x)) return 1;
+    return 0;
+}
+
+// -1 if Left, 0 if None, 1 if Right
+int Game::checkLoser() {
+    if (0 <= m_Ball.point.x && m_Ball.point.x <= WindowSpecification::WIDTH) return 0;
+    return (m_Ball.point.x < 0 ? -1 : 1);
+}
+
+// checks ball state
+void Game::update(double elapsed) {
+
+    int collision = checkCollision();
+    switch (collision) {
+    
+    case -1:
+    case 1:    
+    default:
+        break;
+
+    }
+    m_Ball.update(elapsed);
+
+    int loser = checkLoser();
+    switch (loser) {
+    
+    case -1:
+        ++m_RightScore;
+        m_Ball.reset();
+        break;
+    
+    case 1:
+        ++m_LeftScore;
+        m_Ball.reset();
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Game::render() {
+    clear();
+
+    // paddles
+    for (int i = 0; i < Paddle::HEIGHT; ++i) {
+        mvaddch(m_LeftPaddle.getPos() + i, 0, '|');
+        mvaddch(m_RightPaddle.getPos() + i, WindowSpecification::WIDTH, '|');
+    }
+
+    // ball
+    mvaddch(
+        static_cast<int>(std::round(m_Ball.point.y)),
+        static_cast<int>(std::round(m_Ball.point.x)),
+        'O'
+    );
+
+    // scores
+    mvprintw(WindowSpecification::WIDTH >> 1, 0, "Player1: %d | Player2: %d | ` to quit", m_LeftScore, m_RightScore);
+
+    refresh();
+}
+
+// thanks chatgpt!
+void Game::run() {
+    using namespace std::chrono;
+    initscr();
+    noecho();
+    curs_set(FALSE);
+    nodelay(stdscr, TRUE); // non-blocking input
+    keypad(stdscr, TRUE);
+
+    auto prev = high_resolution_clock::now();
+
+    m_Running = true;
+    while (isRunning()) {
+        auto frameStart = high_resolution_clock::now();
+        auto now = high_resolution_clock::now();
+        double elapsed = duration_cast<duration<double>>(now - prev).count();
+        prev = now;
+
+        // handle input
+        char ch = getch();
+        processInput(ch);
+
+        // throw away extra characters
+        while (getch() != ERR);
+
+        update(1);
+
+        render();
+
+        // cap FPS
+        auto frameEnd = high_resolution_clock::now();
+        auto frameTime = duration_cast<microseconds>(frameEnd - frameStart).count();
+        long frameDuration = 1000000 / FPS;
+        if (frameTime < frameDuration) {
+            usleep(frameDuration - frameTime);
+        }
+    }
+    endwin();
+}
