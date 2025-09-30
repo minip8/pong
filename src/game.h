@@ -17,7 +17,7 @@ private:
     bool checkCollision(Paddle& paddle, double x_dist) {
         int paddle_y = paddle.getPos();
         Vec2 pn = m_Ball.point + m_Ball.direction * (x_dist / std::abs(m_Ball.direction.x));
-        if (paddle_y <= pn.y && pn.y <= paddle_y + paddle.HEIGHT) {
+        if (paddle_y <= pn.y && pn.y < paddle_y + paddle.HEIGHT) {
             handleCollision(pn);
             return true;
         }
