@@ -45,10 +45,12 @@ protected:
 
 public:
     static constexpr int FPS = 60;
+    static constexpr int FRAMES_PER_INPUT_UPDATE = 2;
     static constexpr double BALL_UPDATE_INTERVAL = 0.05;
 
 public:
     void processInput(char);
+    void updateInput();
     void update(double elapsed);
     void render();
     int checkCollision();

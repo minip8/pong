@@ -61,7 +61,9 @@ void Game::processInput(char c) {
     default:
         break;
     }
+}
 
+void Game::updateInput() {
     updateInput(m_LeftPaddle, m_LeftKeyStatePrev, m_LeftKeyStateCur);
     updateInput(m_RightPaddle, m_RightKeyStatePrev, m_RightKeyStateCur);
 
@@ -150,6 +152,8 @@ void Game::run() {
 
     auto prev = high_resolution_clock::now();
 
+    int framesSinceLastInputUpdate = 0;
+
     m_Running = true;
     while (isRunning()) {
         auto frameStart = high_resolution_clock::now();
@@ -159,9 +163,21 @@ void Game::run() {
 
         // handle input
         char ch;
-        while ((ch = static_cast<char>(getch())) != ERR)
+        bool input = false;
+        while ((ch = static_cast<char>(getch())) != ERR) {
             processInput(ch);
+            input = true;
+        }
 
+        if (input || framesSinceLastInputUpdate > FRAMES_PER_INPUT_UPDATE) {
+            updateInput();
+            framesSinceLastInputUpdate = 0;
+        }
+
+        ++framesSinceLastInputUpdate;
+        
+        processInput(' ');
+        
         update(1);
 
         render();
@@ -170,9 +186,9 @@ void Game::run() {
         auto frameEnd = high_resolution_clock::now();
         auto frameTime = duration_cast<microseconds>(frameEnd - frameStart).count();
         long frameDuration = 1000000 / FPS;
-        if (frameTime < frameDuration) {
+        if (frameTime < frameDuration)
             usleep(frameDuration - frameTime);
-        }
+        
     }
     endwin();
 }
