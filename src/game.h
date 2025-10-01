@@ -1,6 +1,7 @@
 #pragma once
 #include "ball.h"
 #include "paddle.h"
+#include "keystate.h"
 
 class Game
 {
@@ -9,6 +10,10 @@ private:
     Ball m_Ball;
     Paddle m_LeftPaddle;
     Paddle m_RightPaddle;
+    KeyState m_LeftKeyStatePrev;
+    KeyState m_LeftKeyStateCur;
+    KeyState m_RightKeyStatePrev;
+    KeyState m_RightKeyStateCur;
     int m_LeftScore;
     int m_RightScore;
     bool m_Running;
@@ -31,12 +36,21 @@ private:
         m_Ball.increase_speed();
     }
 
+protected:
+    void updateInput(Paddle& paddle, KeyState& prev_state, KeyState& cur_state) {
+        
+        if (cur_state.up) paddle.moveUp();
+        if (cur_state.down) paddle.moveDown();
+    }
+
 public:
     static constexpr int FPS = 60;
+    static constexpr int FRAMES_PER_INPUT_UPDATE = 2;
     static constexpr double BALL_UPDATE_INTERVAL = 0.05;
 
 public:
-    void processInput(char c);
+    void processInput(char);
+    void updateInput();
     void update(double elapsed);
     void render();
     int checkCollision();
