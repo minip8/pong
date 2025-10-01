@@ -1,7 +1,8 @@
 #pragma once
+
 #include "ball.h"
 #include "paddle.h"
-#include "keystate.h"
+#include "key.h"
 
 class Game
 {
@@ -10,10 +11,8 @@ private:
     Ball m_Ball;
     Paddle m_LeftPaddle;
     Paddle m_RightPaddle;
-    KeyState m_LeftKeyStatePrev;
-    KeyState m_LeftKeyStateCur;
-    KeyState m_RightKeyStatePrev;
-    KeyState m_RightKeyStateCur;
+    Key m_LeftKeyState;
+    Key m_RightKeyState;
     int m_LeftScore;
     int m_RightScore;
     bool m_Running;
@@ -37,9 +36,16 @@ private:
     }
 
 protected:
-    void updateInput(Paddle& paddle, KeyState& prev_state, KeyState& cur_state) {
-        if (cur_state.up) paddle.moveUp();
-        if (cur_state.down) paddle.moveDown();
+    void updateInput(Paddle& paddle, Key& cur_state) {
+        switch (cur_state) {
+        
+        case Key::UP: paddle.moveUp(); break;
+
+        case Key::DOWN: paddle.moveDown(); break;
+
+        default: break;
+
+        }
     }
 
 public:

@@ -5,20 +5,19 @@
 #include <cmath>
 #include <assert.h>
 #include "game.h"
+#include "key.h"
 
 static Game* s_Game = nullptr;
 
 Game::Game() :
-    m_Ball(),
-    m_LeftPaddle(WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2),
-    m_RightPaddle(WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2),
-    m_LeftKeyStatePrev{0, 0},
-    m_LeftKeyStateCur{0, 0},
-    m_RightKeyStatePrev{0, 0},
-    m_RightKeyStateCur{0, 0},
-    m_LeftScore(0),
-    m_RightScore(0),
-    m_Running(false)
+    m_Ball{},
+    m_LeftPaddle{WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2},
+    m_RightPaddle{WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2},
+    m_LeftKeyState{Key::NONE},
+    m_RightKeyState{Key::NONE},
+    m_LeftScore{0},
+    m_RightScore{0},
+    m_Running{false}
 {
     s_Game = this;
     m_Ball.reset();
@@ -36,27 +35,19 @@ void Game::processInput(char c) {
         break;
     
     case 'q':
-        // m_LeftPaddle.moveUp(); break;
-        m_LeftKeyStateCur.down = false;
-        m_LeftKeyStateCur.up = true;
+        m_LeftKeyState = Key::UP;
         break;
         
     case 'a':
-        // m_LeftPaddle.moveDown(); break;
-        m_LeftKeyStateCur.up = false;
-        m_LeftKeyStateCur.down = true;
+        m_LeftKeyState = Key::DOWN;
         break;
         
     case 'p':
-        // m_RightPaddle.moveUp(); break;
-        m_RightKeyStateCur.down = false;
-        m_RightKeyStateCur.up = true;
+        m_RightKeyState = Key::UP;
         break;
         
     case 'l':
-        // m_RightPaddle.moveDown(); break;
-        m_RightKeyStateCur.up = false;
-        m_RightKeyStateCur.down = true;
+        m_RightKeyState = Key::DOWN;
         break;
 
     default:
@@ -65,11 +56,8 @@ void Game::processInput(char c) {
 }
 
 void Game::updateInput() {
-    updateInput(m_LeftPaddle, m_LeftKeyStatePrev, m_LeftKeyStateCur);
-    updateInput(m_RightPaddle, m_RightKeyStatePrev, m_RightKeyStateCur);
-
-    m_LeftKeyStatePrev = m_LeftKeyStateCur;
-    m_RightKeyStatePrev = m_RightKeyStateCur;
+    updateInput(m_LeftPaddle, m_LeftKeyState);
+    updateInput(m_RightPaddle, m_RightKeyState);
 }
 
 
