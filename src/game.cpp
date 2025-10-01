@@ -6,6 +6,7 @@
 #include <assert.h>
 #include "game.h"
 #include "key.h"
+#include "ai.h"
 
 static Game* s_Game = nullptr;
 
@@ -55,22 +56,37 @@ void Game::processInput(char c) {
     }
 }
 
+void Game::updateInput(AIKey&& key) {
+    switch (key) {
+
+    case AIKey::UP:
+        m_LeftPaddle.moveUp();
+        break;
+    
+    case AIKey::DOWN:
+        m_LeftPaddle.moveDown();
+        break;
+    
+    default:
+        break;
+    }
+}
+
 void Game::updateInput() {
     updateInput(m_LeftPaddle, m_LeftKeyState);
     updateInput(m_RightPaddle, m_RightKeyState);
 }
 
 
-// -1 if Left, 0 if None, 1 if Right
+// -1 if Left, 0 if NONE, 1 if Right
 int Game::checkCollision() {
     double xn = (m_Ball.point + m_Ball.direction).x;
-    // printf("NEW X: %f\n", xn);
     if (xn <= 0 && checkCollision(m_LeftPaddle, m_Ball.point.x)) return -1;
     if (xn >= WindowSpecification::WIDTH && checkCollision(m_RightPaddle, WindowSpecification::WIDTH - m_Ball.point.x)) return 1;
     return 0;
 }
 
-// -1 if Left, 0 if None, 1 if Right
+// -1 if Left, 0 if NONE, 1 if Right
 int Game::checkLoser() {
     if (0 <= m_Ball.point.x && m_Ball.point.x <= WindowSpecification::WIDTH) return 0;
     return (m_Ball.point.x < 0 ? -1 : 1);
@@ -143,6 +159,9 @@ void Game::run() {
 
     int framesSinceLastInputUpdate = 0;
 
+    AIController ai{*s_Game};
+    ai.start();
+
     m_Running = true;
     while (isRunning()) {
         auto frameStart = high_resolution_clock::now();
@@ -164,9 +183,10 @@ void Game::run() {
         }
 
         ++framesSinceLastInputUpdate;
-        
-        processInput(' ');
-        
+    
+        // ai
+        updateInput(ai.getMove());
+
         update(1);
 
         render();

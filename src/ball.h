@@ -49,7 +49,7 @@ struct Ball
         point.y = WindowSpecification::HEIGHT >> 1;
 
         // reset direction
-        direction.x = (direction.x > 0 ? -1.0 : 1.0);
-        direction.y = 0;
+        direction.x = (direction.x > 0 ? -0.5 : 0.5);
+        direction.y = -0.5;
     }
 };

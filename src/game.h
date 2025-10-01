@@ -1,8 +1,14 @@
 #pragma once
 
+#include <chrono>
+
 #include "ball.h"
 #include "paddle.h"
 #include "key.h"
+#include "ai.h"
+
+enum class AIKey;
+using namespace std::chrono;
 
 class Game
 {
@@ -51,12 +57,19 @@ protected:
 public:
     static constexpr int FPS = 60;
     static constexpr int FRAMES_PER_INPUT_UPDATE = 2;
-    static constexpr double BALL_UPDATE_INTERVAL = 0.05;
+    static constexpr auto BALL_UPDATE_INTERVAL = duration<double>(2.0 / FPS); // this is not used
+    static constexpr auto AI_UPDATE_INTERVAL = duration<double>(1.0 / FPS);
+
+public:
+    auto getPaddlePos() { return m_LeftPaddle.getPos(); }
+    auto getBallPos() { return m_Ball.point; }
+    auto getBallDir() { return m_Ball.direction; }
 
 public:
     Game get();
     void processInput(char);
     void updateInput();
+    void updateInput(AIKey&&);
     void update(double elapsed);
     void render();
     int checkCollision();
