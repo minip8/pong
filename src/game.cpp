@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <assert.h>
 #include "game.h"
 
 static Game* s_Game = nullptr;
@@ -188,7 +189,11 @@ void Game::run() {
         long frameDuration = 1000000 / FPS;
         if (frameTime < frameDuration)
             usleep(frameDuration - frameTime);
-        
     }
     endwin();
+}
+
+Game Game::get() {
+    assert(s_Game);
+    return *s_Game;
 }

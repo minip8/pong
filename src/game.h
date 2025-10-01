@@ -38,7 +38,6 @@ private:
 
 protected:
     void updateInput(Paddle& paddle, KeyState& prev_state, KeyState& cur_state) {
-        
         if (cur_state.up) paddle.moveUp();
         if (cur_state.down) paddle.moveDown();
     }
@@ -49,6 +48,7 @@ public:
     static constexpr double BALL_UPDATE_INTERVAL = 0.05;
 
 public:
+    Game get();
     void processInput(char);
     void updateInput();
     void update(double elapsed);
