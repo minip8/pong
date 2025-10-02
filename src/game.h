@@ -24,21 +24,28 @@ private:
     bool m_Running;
 
 private:
-    bool checkCollision(Paddle& paddle, double x_dist) {
+    bool checkPaddleCollision(Paddle& paddle, double x_dist) {
         int paddle_y = paddle.getPos();
         Vec2 pn = m_Ball.point + m_Ball.direction * (x_dist / std::abs(m_Ball.direction.x));
         if (paddle_y <= pn.y && pn.y < paddle_y + paddle.HEIGHT) {
-            handleCollision(pn);
+            handlePaddleCollision(pn);
             return true;
         }
         return false;
     }
 
-    void handleCollision(Vec2<double>& collision_point) {
+    void handlePaddleCollision(Vec2<double>& collisionPoint) {
         m_Ball.direction.reflect_y();
-        m_Ball.point = collision_point + m_Ball.direction;
+        m_Ball.point = collisionPoint + m_Ball.direction;
         m_Ball.direction *= -1;
         m_Ball.increase_speed();
+    }
+
+    void handleBallVerticalCollision(double y_dist) {
+        Vec2 collisionPoint = m_Ball.point + m_Ball.direction * (y_dist / std::abs(m_Ball.direction.y));
+        m_Ball.direction.reflect_x();
+        m_Ball.point = collisionPoint + m_Ball.direction;
+        m_Ball.direction *= -1;
     }
 
 protected:
@@ -72,7 +79,8 @@ public:
     void updateInput(AIKey&&);
     void update(double elapsed);
     void render();
-    int checkCollision();
+    int checkPaddleCollision();
+    bool checkBallVerticalCollision();
     int checkLoser();
     bool isRunning() { return m_Running; }
     void run();

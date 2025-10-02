@@ -79,11 +79,33 @@ void Game::updateInput() {
 
 
 // -1 if Left, 0 if NONE, 1 if Right
-int Game::checkCollision() {
+int Game::checkPaddleCollision() {
     double xn = (m_Ball.point + m_Ball.direction).x;
-    if (xn <= 0 && checkCollision(m_LeftPaddle, m_Ball.point.x)) return -1;
-    if (xn >= WindowSpecification::WIDTH && checkCollision(m_RightPaddle, WindowSpecification::WIDTH - m_Ball.point.x)) return 1;
+
+    if (xn <= 0 && checkPaddleCollision(m_LeftPaddle, m_Ball.point.x))
+        return -1;
+
+    if (xn >= WindowSpecification::WIDTH && checkPaddleCollision(m_RightPaddle, WindowSpecification::WIDTH - m_Ball.point.x))
+        return 1;
+
     return 0;
+}
+
+
+bool Game::checkBallVerticalCollision() {
+    double yn = (m_Ball.point + m_Ball.direction).y;
+
+    if (yn <= 0) {
+        handleBallVerticalCollision(m_Ball.point.y);
+        return true;
+    }
+    
+    if (yn >= WindowSpecification::HEIGHT) {
+        handleBallVerticalCollision(WindowSpecification::HEIGHT - m_Ball.point.y);
+        return true;
+    }
+
+    return false;
 }
 
 // -1 if Left, 0 if NONE, 1 if Right
@@ -95,7 +117,7 @@ int Game::checkLoser() {
 // checks ball state
 void Game::update(double elapsed) {
 
-    int collision = checkCollision();
+    int collision = checkPaddleCollision();
     switch (collision) {
     
     case -1:
@@ -104,6 +126,9 @@ void Game::update(double elapsed) {
         break;
 
     }
+
+    checkBallVerticalCollision();
+    
     m_Ball.update(elapsed);
 
     int loser = checkLoser();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 // slight alteration of https://cp-algorithms.com/geometry/basic-geometry.html
 template <typename T>
 struct Vec2 {
@@ -45,6 +47,9 @@ struct Vec2 {
     }
     Vec2 operator/(T t) const {
         return Vec2(*this) /= t;
+    }
+    double calculateMagnitude() const {
+        return std::sqrt(pow(x, 2) + pow(y, 2));
     }
 };
 

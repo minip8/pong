@@ -2,8 +2,6 @@
 
 #include <thread>
 #include <atomic>
-#include <mutex>
-#include <condition_variable>
 #include <chrono>
 
 #include "game.h"
@@ -25,9 +23,13 @@ private:
     std::thread m_Thread;
     std::atomic<bool> m_Running;
     std::atomic<AIKey> m_Move;
+    
+    int m_TargetPos;
+    bool m_TargetCalculated;
 
 private:
     void run();
+    int calculateTargetPos();
 
 public:
     AIController(Game&);
@@ -35,7 +37,7 @@ public:
 
     void start();
     void stop();
-    void update();
+    void updateMove();
     AIKey getMove() const;
 
 };
