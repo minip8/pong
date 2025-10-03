@@ -1,3 +1,4 @@
+# thanks, chatgpt!
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -MMD -MP
