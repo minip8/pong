@@ -1,13 +1,15 @@
 #pragma once
 
 #include <chrono>
+#include <set>
 
 #include "ball.h"
 #include "paddle.h"
 #include "key.h"
 #include "ai.h"
+#include "controller.h"
 
-enum class AIKey;
+enum class Key;
 using namespace std::chrono;
 
 class Game
@@ -17,8 +19,14 @@ private:
     Ball m_Ball;
     Paddle m_LeftPaddle;
     Paddle m_RightPaddle;
-    Key m_LeftKeyState;
-    Key m_RightKeyState;
+    std::unique_ptr<Controller> m_LeftController;
+    std::unique_ptr<Controller> m_RightController;
+    static constexpr int m_leftKeyUp = 'q';
+    static constexpr int m_leftKeyDown = 'a';
+    static constexpr int m_rightKeyUp = 'p';
+    static constexpr int m_rightKeyDown = 'l';
+    static constexpr int m_quitKey = '`';
+    std::set<int> m_PressedKeys;
     int m_LeftScore;
     int m_RightScore;
     bool m_Running;
@@ -48,13 +56,21 @@ private:
         m_Ball.direction *= -1;
     }
 
+    void setupOnePlayerGame();
+
+    void setupTwoPlayerGame();
+
 protected:
-    void updateInput(Paddle& paddle, Key& cur_state) {
+    void updateInput(Paddle& paddle, std::unique_ptr<Controller>& controller) {
+        Key cur_state = controller->getMove();
+        
         switch (cur_state) {
         
         case Key::UP: paddle.moveUp(); break;
 
         case Key::DOWN: paddle.moveDown(); break;
+
+        case Key::QUIT: m_Running = false; break;
 
         default: break;
 
@@ -73,10 +89,9 @@ public:
     auto getBallDir() { return m_Ball.direction; }
 
 public:
-    Game get();
-    void processInput(char);
+    Game& get();
+    bool processInput();
     void updateInput();
-    void updateInput(AIKey&&);
     void update(double elapsed);
     void render();
     int checkPaddleCollision();

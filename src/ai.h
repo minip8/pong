@@ -10,19 +10,13 @@ class Game;
 using namespace std::chrono;
 
 
-enum class AIKey {
-    NONE,
-    UP,
-    DOWN
-};
-
-class AIController {
+class AI {
 
 private:
     Game& m_Game;
     std::thread m_Thread;
     std::atomic<bool> m_Running;
-    std::atomic<AIKey> m_Move;
+    std::atomic<Key> m_Move;
     
     int m_TargetPos;
     bool m_TargetCalculated;
@@ -32,12 +26,13 @@ private:
     int calculateTargetPos();
 
 public:
-    AIController(Game&);
-    ~AIController();
+    AI(Game&);
+    ~AI();
 
     void start();
     void stop();
+    bool getRunningStatus() const;
     void updateMove();
-    AIKey getMove() const;
+    Key getMove() const;
 
 };

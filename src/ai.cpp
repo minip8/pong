@@ -5,36 +5,40 @@
 #include "paddle.h"
 #include "window.h"
 
-AIController::AIController(Game& game) :
+AI::AI(Game& game) :
     m_Game{game},
     m_Running{false},
-    m_Move{AIKey::NONE},
+    m_Move{Key::NONE},
     m_TargetPos{},
     m_TargetCalculated{false}
 {}
 
 
-AIController::~AIController() {
+AI::~AI() {
     stop();
 }
 
-void AIController::start() {
+void AI::start() {
     m_Running = true;
-    m_Thread = std::thread(&AIController::run, this);
+    m_Thread = std::thread(&AI::run, this);
 }
 
-void AIController::stop() {
+void AI::stop() {
     m_Running = false;
     if (m_Thread.joinable()) 
         m_Thread.join();
 }
 
-AIKey AIController::getMove() const {
+bool AI::getRunningStatus() const {
+    return m_Running.load();
+}
+
+Key AI::getMove() const {
     return m_Move.load();
 }
 
 // assumes ball is travelling towards AI paddle (left)
-int AIController::calculateTargetPos() {
+int AI::calculateTargetPos() {
     auto ballPos{m_Game.getBallPos()};
     auto ballDir{m_Game.getBallDir()};
     double ballHeight{ballPos.y};
@@ -57,22 +61,22 @@ int AIController::calculateTargetPos() {
     return finalPos;
 }
 
-void AIController::updateMove() {
+void AI::updateMove() {
     assert(m_TargetCalculated);
 
     auto paddlePos = m_Game.getPaddlePos() + Paddle::HEIGHT / 2;
 
     if (paddlePos < m_TargetPos)
-        m_Move = AIKey::DOWN;
+        m_Move = Key::DOWN;
     
     else if (paddlePos > m_TargetPos)
-        m_Move = AIKey::UP;
+        m_Move = Key::UP;
     
     else
-        m_Move = AIKey::NONE;
+        m_Move = Key::NONE;
 }
 
-void AIController::run() {
+void AI::run() {
     using namespace std::chrono_literals;
     while (m_Running) {
         if (!m_TargetCalculated && m_Game.getBallDir().x < 0) {

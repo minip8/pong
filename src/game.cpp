@@ -4,9 +4,12 @@
 #include <algorithm>
 #include <cmath>
 #include <assert.h>
+#include <iostream>
+
 #include "game.h"
 #include "key.h"
 #include "ai.h"
+#include "window.h"
 
 static Game* s_Game = nullptr;
 
@@ -14,67 +17,66 @@ Game::Game() :
     m_Ball{},
     m_LeftPaddle{WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2},
     m_RightPaddle{WindowSpecification::HEIGHT / 2 - Paddle::HEIGHT / 2},
-    m_LeftKeyState{Key::NONE},
-    m_RightKeyState{Key::NONE},
+    m_PressedKeys{},
     m_LeftScore{0},
     m_RightScore{0},
     m_Running{false}
 {
     s_Game = this;
     m_Ball.reset();
+
+    // update controllers
+    int numPlayers;
+    do {
+        std::cout << "Enter 1 for single-player OR 2 for two-player: ";
+        std::cin >> numPlayers;
+    } while (!(numPlayers == 1 || numPlayers == 2));
+
+    if (numPlayers == 1) setupOnePlayerGame();
+    if (numPlayers == 2) setupTwoPlayerGame();
 }
 
 Game::~Game() {
     s_Game = nullptr;
 }
 
-void Game::processInput(char c) {
-    switch (c) {
-
-    case '`':
-        m_Running = false;
-        break;
-    
-    case 'q':
-        m_LeftKeyState = Key::UP;
-        break;
-        
-    case 'a':
-        m_LeftKeyState = Key::DOWN;
-        break;
-        
-    case 'p':
-        m_RightKeyState = Key::UP;
-        break;
-        
-    case 'l':
-        m_RightKeyState = Key::DOWN;
-        break;
-
-    default:
-        break;
-    }
+Game& Game::get() {
+    assert(s_Game);
+    return *s_Game;
 }
 
-void Game::updateInput(AIKey&& key) {
-    switch (key) {
+void Game::setupOnePlayerGame() {
+    m_RightController = std::make_unique<HumanController>(m_rightKeyUp, m_rightKeyDown, m_quitKey);
 
-    case AIKey::UP:
-        m_LeftPaddle.moveUp();
-        break;
-    
-    case AIKey::DOWN:
-        m_LeftPaddle.moveDown();
-        break;
-    
-    default:
-        break;
+    static AI ai{get()};
+    ai.start();
+    m_LeftController = std::make_unique<AIController>(ai);
+}
+
+void Game::setupTwoPlayerGame() {
+    m_LeftController = std::make_unique<HumanController>(m_leftKeyUp, m_leftKeyDown, m_quitKey);
+    m_RightController = std::make_unique<HumanController>(m_rightKeyUp, m_rightKeyDown, m_quitKey);
+}
+
+bool Game::processInput() {
+    int t = ' ';
+    bool input = false;
+    while ((t = getch()) != ERR) {
+        if (m_LeftController->checkKey(t)) {
+            m_LeftController->updateMove(t);
+            input = true;
+        }
+        else if (m_RightController->checkKey(t)) {
+            m_RightController->updateMove(t);
+            input = true;
+        }
     }
+    return input;
 }
 
 void Game::updateInput() {
-    updateInput(m_LeftPaddle, m_LeftKeyState);
-    updateInput(m_RightPaddle, m_RightKeyState);
+    updateInput(m_LeftPaddle, m_LeftController);
+    updateInput(m_RightPaddle, m_RightController);
 }
 
 
@@ -184,9 +186,6 @@ void Game::run() {
 
     int framesSinceLastInputUpdate = 0;
 
-    AIController ai{*s_Game};
-    ai.start();
-
     m_Running = true;
     while (isRunning()) {
         auto frameStart = high_resolution_clock::now();
@@ -195,12 +194,7 @@ void Game::run() {
         prev = now;
 
         // handle input
-        char ch;
-        bool input = false;
-        while ((ch = static_cast<char>(getch())) != ERR) {
-            processInput(ch);
-            input = true;
-        }
+        bool input = processInput();
 
         if (input || framesSinceLastInputUpdate > FRAMES_PER_INPUT_UPDATE) {
             updateInput();
@@ -208,9 +202,6 @@ void Game::run() {
         }
 
         ++framesSinceLastInputUpdate;
-    
-        // ai
-        updateInput(ai.getMove());
 
         update(1);
 
@@ -226,7 +217,3 @@ void Game::run() {
     endwin();
 }
 
-Game Game::get() {
-    assert(s_Game);
-    return *s_Game;
-}
