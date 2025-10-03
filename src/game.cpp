@@ -154,6 +154,12 @@ void Game::update(double elapsed) {
 void Game::render() {
     clear();
 
+    // roof and floor
+    for (int j = 0; j < WindowSpecification::WIDTH; ++j) {
+        mvaddch(0, j, '-');
+        mvaddch(WindowSpecification::HEIGHT, j, '-');
+    }
+
     // paddles
     for (int i = 0; i < Paddle::HEIGHT; ++i) {
         mvaddch(m_LeftPaddle.getPos() + i, 0, '|');
