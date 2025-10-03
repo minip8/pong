@@ -17,6 +17,36 @@ University classes are too slow so hopefully this game will help reduce b o r e 
 Also taught me a bit about C++, OOP, and multithreading.
 
 
+## Requirements
+
+### OS
+
+Courtesy of the use of `ncurses`. (Sorry not sorry!)
+
+Any of:
+
+- Any Linux distro
+- OSX 
+
+
+### Other
+
+- C++ compiler with C++17 support
+
+**Note**: This game has only been tested on WSL2, running Ubuntu 24.04.03 LTS.
+
+
+## Installation
+
+To install, simply run:
+
+```bash
+git clone https://github.com/minip8/pong
+cd pong
+make
+```
+
+
 ## The AI
 
 The AI always plays the left paddle.
